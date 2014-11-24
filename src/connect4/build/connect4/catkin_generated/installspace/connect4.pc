@@ -1,0 +1,8 @@
+prefix=/home/ee125/ros_workspaces/JJCProject/connect4/install
+
+Name: connect4
+Description: Description of connect4
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/ee125/ros_workspaces/JJCProject/connect4/install/lib 
+Requires: 

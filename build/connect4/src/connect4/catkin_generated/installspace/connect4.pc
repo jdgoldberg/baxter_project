@@ -1,8 +1,0 @@
-prefix=/home/casarez_esterline_goldberg/project/baxter_project/install
-
-Name: connect4
-Description: Description of connect4
-Version: 0.0.0
-Cflags: 
-Libs: -L/home/casarez_esterline_goldberg/project/baxter_project/install/lib 
-Requires: 

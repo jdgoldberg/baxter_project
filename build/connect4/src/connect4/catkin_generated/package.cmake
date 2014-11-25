@@ -1,7 +1,0 @@
-set(_CATKIN_CURRENT_PACKAGE "connect4")
-set(connect4_MAINTAINER "ee125 <ee125@todo.todo>")
-set(connect4_DEPRECATED "")
-set(connect4_VERSION "0.0.0")
-set(connect4_BUILD_DEPENDS "baxter_interface" "geometry_msgs" "moveit_commander" "moveit_msgs" "roscpp" "rospy" "std_msgs")
-set(connect4_RUN_DEPENDS "baxter_interface" "geometry_msgs" "moveit_commander" "moveit_msgs" "roscpp" "rospy" "std_msgs")
-set(connect4_BUILDTOOL_DEPENDS "catkin")

@@ -1,0 +1,10 @@
+<launch>
+	
+
+	<node name="image_view_cv" pkg="image_view" type="image_view" respawn="false" output="screen">
+		<remap from="image" to="/processed_image"/>
+		<param name="autosize" value="true" />
+	</node>
+
+	<node name="object_tracker" pkg="connect4" type="object_tracker_click.py" respawn="false" output="screen" />
+</launch>

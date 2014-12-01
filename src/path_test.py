@@ -5,6 +5,8 @@ import moveit_commander
 from moveit_msgs.msg import OrientationConstraint, Constraints
 from geometry_msgs.msg import PoseStamped
 from baxter_interface import gripper as baxter_gripper
+from std_msgs.msg import String
+import time
 
 #rosrun rviz rviz
 # roslaunch ar_track_alvar lefthand_track.launch
@@ -44,13 +46,161 @@ z = [z0,z1,z2,z3,z4,z5]
 closegripper = 2
 opengripper = 4
 
+class game_play():
+    def __init__(self):
+        self.state = "INITIALIZING"
+        moveit_commander.roscpp_initialize(sys.argv)
+
+        #Start a node
+        rospy.init_node('moveit_node')
+        
+        #Initialize subscriber
+        self.sub = rospy.Subscriber("game_state", String, self.state_machine)
+        
+        #Initialize both arms
+        self.robot = moveit_commander.RobotCommander()
+        self.scene = moveit_commander.PlanningSceneInterface()
+        self.left_arm = moveit_commander.MoveGroupCommander('left_arm')
+        self.right_arm = moveit_commander.MoveGroupCommander('right_arm')
+        self.left_arm.set_planner_id('RRTConnectkConfigDefault')
+        self.left_arm.set_planning_time(10)
+        self.right_arm.set_planner_id('RRTConnectkConfigDefault')
+        self.right_arm.set_planning_time(10)
+
+        #Set up the grippers
+        #self.left_gripper = baxter_gripper.Gripper('left')
+        self.right_gripper = baxter_gripper.Gripper('right')
+
+        #Calibrate the gripper (other commands won't work unless you do this first)
+        print('Calibrating...')
+        #left_gripper.calibrate()
+        self.right_gripper.calibrate()
+        rospy.sleep(0.5)
+
+        #Initialize class variables
+        self.available_pieces = [0,1,2,3,4,5,6,7,8,9,13,14,15,16,20]
+
+        self.state = "BEGIN"
+    
+    # Main run method for the ObjectTracker class
+    def run(self):
+        try:
+            rospy.spin()
+        except KeyboardInterrupt:
+            cv2.destroyAllWindows()
+
+    def state_machine(self, message):
+        self.sub.unregister()
+        print "in state machine"
+        game_state = message.data
+        if self.state == "INITIALIZING":
+            print "initializing..."
+        elif self.state == "BEGIN":
+            print "received board:",game_state
+            if self.valid_board(game_state) == "baxter":
+                print "my turn!"
+                self.baxter_move(game_state)
+            elif self.valid_board(game_state) == "human":
+                print "waiting for human to move..."
+            else:
+                print "not valid"
+        self.sub = rospy.Subscriber("game_state", String, self.state_machine)
+
+    def valid_board(self, board):
+        reds = 0
+        yellows = 0
+        for piece in board:
+            if piece == "X":
+                reds = reds + 1
+            elif piece == "O":
+                yellows = yellows + 1
+        #print reds,yellows
+        if reds - yellows == 0:
+            return "human"
+        if reds - yellows == 1:
+            return "baxter"
+        return "error"
+
+    def baxter_move(self, board):
+        next_piece = self.next_available_piece()
+        if next_piece == "error":
+            print "no more pieces"
+            return
+        print "next piece is:",next_piece
+
+        for i in range(len(x)):
+            print "Doing move " + str(i)
+            goal = PoseStamped()
+            goal.header.frame_id = ar_tag
+            #x, y, and z position
+            if i == 1 or i == 2 or i == 3:
+                goal.pose.position.x = x[i] + dx * (next_piece % 7)
+                goal.pose.position.y = y[i] + dy * (next_piece / 7)
+                goal.pose.position.z = z[i]
+            elif i == 4: # which slot to go to
+                slot_no = int(raw_input("Which slot? [1:7] "))
+                goal.pose.position.x = x[i] + slotwidth * (slot_no - 1)
+                goal.pose.position.y = y[i]
+                goal.pose.position.z = z[i]
+            else:
+                goal.pose.position.x = x[i]
+                goal.pose.position.y = y[i]
+                goal.pose.position.z = z[i]
+            #Orientation as a quaternion
+            goal.pose.orientation.x = 0.0
+            goal.pose.orientation.y = -1.0
+            goal.pose.orientation.z = 0.0
+            goal.pose.orientation.w = 0.0
+
+            #Set the goal state to the pose you just defined
+            #left_arm.set_pose_target(goal)
+            self.right_arm.set_pose_target(goal)
+
+            #Set the start state for the left arm
+            #left_arm.set_start_state_to_current_state()
+            self.right_arm.set_start_state_to_current_state()
+
+            #Plan a path
+            #left_plan = left_arm.plan()
+            right_plan = self.right_arm.plan()
+        
+            #Execute the plan
+            #raw_input('Press <Enter> to move the left arm to goal pose 1 (path constraints are never enforced during this motion): ')
+            #left_arm.execute(left_plan)
+            raw_input("press enter to execute")
+            self.right_arm.execute(right_plan)
+            rospy.sleep(1.0)
+
+            if i == closegripper:
+                #left_gripper.close(block=True)
+                self.right_gripper.close(block=True)
+                rospy.sleep(0.5)
+            elif i == opengripper:
+                #left_gripper.open(block=True)
+                self.right_gripper.open(block=True)
+                rospy.sleep(1.0)
+        rospy.sleep(10.0)
+
+
+    def next_available_piece(self):
+        if len(self.available_pieces) > 0:
+            next_piece = self.available_pieces[0]
+            self.available_pieces = self.available_pieces[1:]
+            return next_piece
+        return "error"
+
+'''
 def main():
     #Initialize moveit_commander
     moveit_commander.roscpp_initialize(sys.argv)
 
     #Start a node
     rospy.init_node('moveit_node')
-
+    
+    #Initialize subscriber
+    rospy.Subscriber("game_state", String, state_machine)
+    rospy.spin()
+    return
     #Initialize both arms
     robot = moveit_commander.RobotCommander()
     scene = moveit_commander.PlanningSceneInterface()
@@ -73,7 +223,7 @@ def main():
 
     piece_no = 0
     for i in range(len(x)):
-	print "Doing move " + str(i)
+        print "Doing move " + str(i)
         goal = PoseStamped()
         goal.header.frame_id = ar_tag
         #x, y, and z position
@@ -394,3 +544,8 @@ def main():
 
 if __name__ == '__main__':
     main()
+'''
+
+if __name__ == '__main__':
+  node = game_play()
+  node.run()

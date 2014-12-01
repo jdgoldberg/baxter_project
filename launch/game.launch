@@ -1,0 +1,8 @@
+<launch>
+
+  <node name="tf_sub" pkg="connect4" type="tf_sub.py" />
+
+  <node name="gameplay" pkg="connect4" type="game.py" respawn="false" output="screen" />
+
+</launch>
+

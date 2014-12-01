@@ -282,8 +282,8 @@ def play_games():
         print
         
         
-
-play_games()
+if __name__ == '__main__':
+    play_games()
 #play_game(BOARD,("player","robot"))
 
 #direct_feed_to_arduino()

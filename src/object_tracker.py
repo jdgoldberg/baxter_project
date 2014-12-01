@@ -131,42 +131,42 @@ class ObjectTracker:
       
       # If we found polygons, find largest
       if len(bounding_polygons) > 0:
-	largest_poly = self.find_largest_poly(bounding_polygons)
-	if largest_poly is not None:
-	  self.image_points = []
-	  
-	  #print np.sort(largest_poly,axis=0)
-	  largest_poly_temp = np.zeros((4,2))
-	  for i in range(len(largest_poly)):
-	    largest_poly_temp[i][:] = largest_poly[i][0][:]
-	  #print "unsorted"
-	  #print largest_poly_temp
-	  largest_poly_temp.view('i8,i8').sort(order=['f1'], axis=0)
-	  #print "sorted"
-	  #print largest_poly_temp
-	  largest_poly_temp[0:2][:].view('i8,i8').sort(order=['f0'], axis=0)
-	  largest_poly_temp[2:][:].view('i8,i8').sort(order=['f0'], axis=0)
-	  #print largest_poly_temp
-	  largest_poly_sort = np.array([largest_poly_temp[0][:],largest_poly_temp[1][:],largest_poly_temp[3][:],largest_poly_temp[2][:]])
-	  #print largest_poly_sort
-	  for points in largest_poly_sort:
-	    #print points
-	    #print points[0]
-	    #print points[1]
-	    self.image_points = self.image_points + [[points[0],points[1]]]
-	  #print self.image_points
-	  #self.image_points.view('i8,i8').sort(order=['f1'], axis=0)
-	  #print self.image_points
-	  self.compute_homography()
-	  self.check_piece_color(7, 6, 2.7, 1.9, 3.3, 3.2)
-	  #print "Hue vector"
-	  print "current:",self.piece_color[:]
-	  #print self.piece_mean[35:]
-	z = None
+        largest_poly = self.find_largest_poly(bounding_polygons)
+        if largest_poly is not None:
+          self.image_points = []
+      
+          #print np.sort(largest_poly,axis=0)
+          largest_poly_temp = np.zeros((4,2))
+          for i in range(len(largest_poly)):
+            largest_poly_temp[i][:] = largest_poly[i][0][:]
+          #print "unsorted"
+          #print largest_poly_temp
+          largest_poly_temp.view('i8,i8').sort(order=['f1'], axis=0)
+          #print "sorted"
+          #print largest_poly_temp
+          largest_poly_temp[0:2][:].view('i8,i8').sort(order=['f0'], axis=0)
+          largest_poly_temp[2:][:].view('i8,i8').sort(order=['f0'], axis=0)
+          #print largest_poly_temp
+          largest_poly_sort = np.array([largest_poly_temp[0][:],largest_poly_temp[1][:],largest_poly_temp[3][:],largest_poly_temp[2][:]])
+          #print largest_poly_sort
+          for points in largest_poly_sort:
+            #print points
+            #print points[0]
+            #print points[1]
+            self.image_points = self.image_points + [[points[0],points[1]]]
+          #print self.image_points
+          #self.image_points.view('i8,i8').sort(order=['f1'], axis=0)
+          #print self.image_points
+          self.compute_homography()
+          self.check_piece_color(7, 6, 2.7, 1.9, 3.3, 3.2)
+          #print "Hue vector"
+          print "current:",self.piece_color[:]
+          #print self.piece_mean[35:]
+        z = None
       else:
-	largest_poly = None
-	z = None
-	
+        largest_poly = None
+        z = None
+    
       # Draw the bounding boxes and centroid on the thresholded image output
       #self.draw_boxes(bounding_boxes, largest_box, centroid)
       #self.draw_polygons(bounding_polygons, largest_poly)
@@ -269,7 +269,7 @@ class ObjectTracker:
         #print pix_center
         #cv2.circle(self.homography_image, pix_center, 5, 0, -1)
         cv2.circle(self.np_image, pix_center, 5, 0, -1)
-	#Right now only sampling one pixel, need to take mean of pixels around center
+    #Right now only sampling one pixel, need to take mean of pixels around center
         color_swatch = self.hsv_img_unblurred[pix_center[1]-1:pix_center[1]+2,pix_center[0]-1:pix_center[0]+2,0]
         #print "swatch"
         #print color_swatch[0,0,0]
@@ -410,8 +410,8 @@ class ObjectTracker:
     for i in range(len(bounding_boxes)):
       temparea = (bounding_boxes[i][1][0]-bounding_boxes[i][0][0])*(bounding_boxes[i][1][1]-bounding_boxes[i][0][1])
       if temparea > area:
-	area = temparea
-	largest = i
+        area = temparea
+        largest = i
     largest_box = bounding_boxes[largest]
 
 ################################################################################
@@ -426,13 +426,13 @@ class ObjectTracker:
     for poly in bounding_polygons:
       poly = np.array(poly)
       if len(poly) == 4:
-	#print "len4"
-	#print poly
-	temparea = abs((poly[0][0][0]*poly[1][0][1] - poly[1][0][0]*poly[0][0][1]) + (poly[1][0][0]*poly[2][0][1] - poly[2][0][0]*poly[1][0][1]) + (poly[2][0][0]*poly[3][0][1] - poly[3][0][0]*poly[2][0][1]) + (poly[3][0][0]*poly[0][0][1] - poly[0][0][0]*poly[3][0][1]))/2.0
-	if temparea > area:
-	  area = temparea
-	  largest = ind
-	#print area
+        #print "len4"
+        #print poly
+        temparea = abs((poly[0][0][0]*poly[1][0][1] - poly[1][0][0]*poly[0][0][1]) + (poly[1][0][0]*poly[2][0][1] - poly[2][0][0]*poly[1][0][1]) + (poly[2][0][0]*poly[3][0][1] - poly[3][0][0]*poly[2][0][1]) + (poly[3][0][0]*poly[0][0][1] - poly[0][0][0]*poly[3][0][1]))/2.0
+        if temparea > area:
+          area = temparea
+          largest = ind
+        #print area
       ind = ind + 1
     largest_poly = bounding_polygons[largest]
     if len(largest_poly) == 4:
@@ -456,13 +456,13 @@ class ObjectTracker:
       print indices_above_thresh
       print len(indices_above_thresh)
       if len(indices_above_thresh) == 42:
-	cell_boxes = np.zeros((42,2,2))
-	counter = 0
-	for i in indices_above_thresh:
-	  cell_boxes[counter] = bounding_boxes[i]
-	  counter = counter + 1
-	print cell_boxes
-	return cell_boxes
+        cell_boxes = np.zeros((42,2,2))
+        counter = 0
+        for i in indices_above_thresh:
+          cell_boxes[counter] = bounding_boxes[i]
+          counter = counter + 1
+        print cell_boxes
+        return cell_boxes
     return None
       
   def sort_cell_boxes(self, cell_boxes):

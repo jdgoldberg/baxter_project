@@ -264,6 +264,7 @@ class ObjectTracker:
     self.thresh_img = cv2.GaussianBlur(self.np_image, 2*(blur_radius,), blur_sigma)
 
     # Convert to HSV colorspace, and threshold
+    self.hsv_img_unblurred = cv2.cvtColor(self.np_image, cv2.COLOR_BGR2HSV)
     self.thresh_img = cv2.cvtColor(self.thresh_img, cv2.COLOR_BGR2HSV)
     self.thresh_img = cv2.inRange(self.thresh_img, color_min, color_max)
 

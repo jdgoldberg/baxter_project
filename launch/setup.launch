@@ -2,9 +2,6 @@
 
   <node name="rsdk_robot_enable" pkg="baxter_tools" type="enable_robot.py" args="-e" />
 
-  <node name="left_camera_close" pkg="baxter_tools" type="camera_control.py" args="-c left_hand_camera" />
-
-  <node name="right_camera_close" pkg="baxter_tools" type="camera_control.py" args="-c right_hand_camera" />
 
   <node name="left_camera_open" pkg="baxter_tools" type="camera_control.py" args="-o left_hand_camera" />
 

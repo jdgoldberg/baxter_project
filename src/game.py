@@ -9,14 +9,10 @@ from std_msgs.msg import String
 import time
 import connect4robot as ai
 
-#rosrun rviz rviz
-# roslaunch ar_track_alvar lefthand_track.launch
-# rosrun baxter_interface joint_trajectory_action_server.py
-# roslaunch baxter_moveit_config move_group.launch
-# rosrun connect4 path_test.py
-
 #ar_tag = "ar_marker_5"
 ar_tag = "test1"
+
+### GAME BOARD PARAMETERS ###
 dx = -.035
 dy = .0675
 slotwidth = -0.035
@@ -44,8 +40,9 @@ z5 = z3
 x = [x0,x1,x2,x3,x4,x5]
 y = [y0,y1,y2,y3,y4,y5]
 z = [z0,z1,z2,z3,z4,z5]
-closegripper = 2
-opengripper = 4
+closegripper = 2 #pick up after move 2
+opengripper = 4 #release after move 4
+
 
 class game_play():
     def __init__(self):
@@ -74,14 +71,14 @@ class game_play():
 
         #Calibrate the gripper (other commands won't work unless you do this first)
         print('Calibrating...')
-        #left_gripper.calibrate()
         self.right_gripper.calibrate()
         rospy.sleep(0.5)
 
         #Initialize class variables
-        self.available_pieces = [0,1,2,3,4,5,6,7,8,9,13,14,15,16,20]
+        self.all_pieces = [0,1,2,3,4,5,6,7,8,9,13,14,15,16,20]
+        self.available_pieces = self.all_pieces
 
-        self.state = "BEGIN"
+        self.state = "PLAY"
     
     # Main run method for the ObjectTracker class
     def run(self):
@@ -91,12 +88,15 @@ class game_play():
             cv2.destroyAllWindows()
 
     def state_machine(self, message):
+        #unsubscribe from topic while in state_machine
         self.sub.unregister()
         print "in state machine"
         game_state = message.data
+        
         if self.state == "INITIALIZING":
             print "initializing..."
-        elif self.state == "BEGIN":
+        
+        elif self.state == "PLAY":
             #print "received board:",game_state
             for i in range(5,-1,-1):
                 lineSoFar = ""
@@ -104,23 +104,30 @@ class game_play():
                     lineSoFar += "|"
                     lineSoFar += game_state[i*7 + j]
                 print "|" + lineSoFar + "||"
+            
             valid_output = self.valid_board(game_state)
             if valid_output == "baxter":
                 print "my turn!"
                 self.baxter_move(game_state)
+            
             elif valid_output == "human":
                 print "waiting for human to move..."
+            
             elif valid_output == "baxter wins":
                 print "==GAME OVER=="
                 print "I won, good game :)"
                 self.victory_dance()
+            
             elif valid_output == "human wins":
                 print "==GAME OVER=="
                 print "How did I lose?!? :("
+            
             else:
                 print "not valid"
+        #resubscribe after checking state and moving
         self.sub = rospy.Subscriber("game_state", String, self.state_machine)
 
+    #checks board for validity and determines whose turn or if there is a winner
     def valid_board(self, board):
         reds = 0
         yellows = 0
@@ -141,6 +148,7 @@ class game_play():
             return "baxter"
         return "error"
 
+    #make move on board
     def baxter_move(self, board):
         next_piece = self.next_available_piece()
         if next_piece == "error":
@@ -183,40 +191,35 @@ class game_play():
             goal.pose.orientation.w = 0.0
 
             #Set the goal state to the pose you just defined
-            #left_arm.set_pose_target(goal)
             self.right_arm.set_pose_target(goal)
 
             #Set the start state for the left arm
-            #left_arm.set_start_state_to_current_state()
             self.right_arm.set_start_state_to_current_state()
 
             #Plan a path
-            #left_plan = left_arm.plan()
             right_plan = self.right_arm.plan()
         
             #Execute the plan
-            #raw_input('Press <Enter> to move the left arm to goal pose 1 (path constraints are never enforced during this motion): ')
-            #left_arm.execute(left_plan)
-            #raw_input("press enter to execute")
             self.right_arm.execute(right_plan)
             rospy.sleep(1.0)
 
             if i == closegripper:
-                #left_gripper.close(block=True)
                 self.right_gripper.close(block=True)
                 rospy.sleep(0.5)
             elif i == opengripper:
-                #left_gripper.open(block=True)
                 self.right_gripper.open(block=True)
                 rospy.sleep(1.0)
         rospy.sleep(10.0)
 
-
+    #get next available piece to pick up
     def next_available_piece(self):
         if len(self.available_pieces) > 0:
             next_piece = self.available_pieces[0]
             self.available_pieces = self.available_pieces[1:]
             return next_piece
+        elif len(self.available_pieces) == 0:
+            self.available_pieces = self.all_pieces
+            return self.next_available_piece()
         return "error"
 
     def victory_dance(self):
